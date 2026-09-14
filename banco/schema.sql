@@ -1,0 +1,21 @@
+-- PostgreSQL - esqueleto inicial do Módulo de Vendas TCC ERP 2.0
+CREATE TABLE IF NOT EXISTS cliente (
+    id BIGSERIAL PRIMARY KEY, cpf_cnpj VARCHAR(18) NOT NULL UNIQUE,
+    razao_social VARCHAR(200) NOT NULL, nome_fantasia VARCHAR(200),
+    limite_credito NUMERIC(15,2) NOT NULL DEFAULT 0, condicao_pagamento VARCHAR(100),
+    bloqueado BOOLEAN NOT NULL DEFAULT FALSE, motivo_bloqueio VARCHAR(500), criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS produto (
+    id BIGSERIAL PRIMARY KEY, sku VARCHAR(60) NOT NULL UNIQUE, descricao VARCHAR(250) NOT NULL,
+    unidade_medida VARCHAR(10) NOT NULL, preco_tabela NUMERIC(15,2) NOT NULL DEFAULT 0,
+    custo NUMERIC(15,2) NOT NULL DEFAULT 0, estoque_disponivel NUMERIC(15,3) NOT NULL DEFAULT 0, ncm VARCHAR(20)
+);
+CREATE TABLE IF NOT EXISTS pedido_venda (
+    id BIGSERIAL PRIMARY KEY, cliente_id BIGINT NOT NULL REFERENCES cliente(id),
+    status_comercial VARCHAR(30) NOT NULL DEFAULT 'RASCUNHO', total_bruto NUMERIC(15,2) NOT NULL DEFAULT 0,
+    total_desconto NUMERIC(15,2) NOT NULL DEFAULT 0, total_liquido NUMERIC(15,2) NOT NULL DEFAULT 0, criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS item_pedido (
+    id BIGSERIAL PRIMARY KEY, pedido_id BIGINT NOT NULL REFERENCES pedido_venda(id), produto_id BIGINT NOT NULL REFERENCES produto(id),
+    quantidade NUMERIC(15,3) NOT NULL, preco_unitario NUMERIC(15,2) NOT NULL, desconto NUMERIC(15,2) NOT NULL DEFAULT 0, subtotal NUMERIC(15,2) NOT NULL
+);
