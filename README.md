@@ -1,6 +1,6 @@
 # Módulo de Vendas (TCC ERP) - 2.0
 
-Estrutura inicial de um sistema Java Swing para o módulo comercial, organizada em **Model-View-Controller + DAO**, com persistência planejada em PostgreSQL via JDBC. O escopo contempla cadastro, digitação, consulta e acompanhamento de pedidos, liberação comercial, devoluções e operação de balcão/PDV. O motor de precificação pertence ao Módulo Financeiro e não faz parte deste repositório.
+Sistema Java Swing organizado em **Model-View-Controller + DAO**, com persistência planejada em PostgreSQL via JDBC. O escopo atual reúne cadastro de clientes, digitação de pedidos, motor de preços e alçadas, liberação comercial, devoluções e operação de balcão com pagamento.
 
 ## Estrutura
 
@@ -9,7 +9,6 @@ Modulo-de-Vendas-TCC-ERP-2.0/
 ├── .gitignore
 ├── README.md
 ├── banco/schema.sql
-├── bin/
 └── src/
     ├── Main.java
     ├── model/
@@ -18,55 +17,42 @@ Modulo-de-Vendas-TCC-ERP-2.0/
     └── view/
 ```
 
-## Matriz atual de responsabilidades
+Todo o código funcional está unificado sob `src/`. Não existem subprojetos soltos ou pastas paralelas de telas.
 
-| Integrante | Camada principal | Responsabilidade / telas |
-|---|---|---|
-| Eduardo Yuri | `src/model/` | Entidades de domínio compartilhadas: `Cliente`, `Produto`, `PedidoVenda`, `ItemPedido`, `Devolucao`, `LoteConsolidacao` e `CaixaBalcao`. |
-| Rafael | `src/dao/` e `banco/` | Scripts SQL (`schema.sql`), conexão JDBC e DAOs: `ClienteDAO`, `PedidoDAO`, `DevolucaoDAO` e `CaixaDAO`. |
-| Matheus Godoy | `src/controller/` | `PedidoController.java`, `ConsultaVendasController.java` e a view de Histórico/Dashboard de Vendas. |
-| Lucas de Lima | `src/controller/` | `LiberacaoComercialController.java`, com cockpit de consolidação e liberação comercial. |
-| Eúde | `src/view/` | `CadastroClienteView.java` e `TelaPrincipalView.java`, incluindo Dashboard/Launcher Central. |
-| Pietro | `src/view/` | `GestaoDevolucoesView.java` e `DigitacaoPedidoView.java`. |
-| Eduardo | `src/view/` | `TelaBalcaoView.java`, com abertura/fechamento de caixa e pagamentos. |
+## Matriz oficial de responsabilidades
 
-## Consulta, histórico e acompanhamento de pedidos
+| Integrante | Módulo / Tela | `model/` | `controller/` | `view/` | `dao/` & `banco/` |
+|---|---|---|---|---|---|
+| Eúde | Cadastro de Clientes | `Cliente.java` | `ClienteController.java` (validações & status) | `CadastroClienteView.java` | `ClienteDAO.java` |
+| Rafael | Digitação de Pedidos | `PedidoVenda.java`, `ItemPedido.java` | `PedidoController.java` (itens & totais) | `DigitacaoPedidoView.java` | `PedidoDAO.java` |
+| Matheus Godoy | Motor de Preços (Pricing) | `RegraPreco.java`, `AlcadaComercial.java`, `ResultadoPrecificacao.java` | `PricingEngineController.java` (margens & hard stops) | `PricingEngineView.java` | `AlcadaDAO.java` |
+| Lucas de Lima | Liberação Comercial | `LoteConsolidacaoComercial.java` | `LiberacaoComercialController.java` (status & cockpit) | `LiberacaoComercialView.java` | Atualizações em `PedidoDAO` |
+| Pietro | Gestão de Devoluções | `Devolucao.java`, `ItemDevolucao.java` | `DevolucaoController.java` (prazos & elegibilidade) | `GestaoDevolucoesView.java` | `DevolucaoDAO.java` |
+| Eduardo Yuri | Tela de Balcão & Pagamento | `Produto.java`, `ItemVenda.java`, `ClientePagamento.java` | `BalcaoController.java`, `TelaPagamentoController.java` | `TelaBalcaoView.java`, `TelaPagamentoView.java` | `VendaBalcaoDAO.java` |
 
-`ConsultaHistoricoVendasView.java` é a tela de acompanhamento do ciclo de vendas. O esqueleto contém filtros por período, cliente, vendedor e status do pedido: `ABERTO`, `BLOQUEADO`, `PENDENTE_APROVACAO`, `LIBERADO_PARA_FATURAMENTO` e `DEVOLVIDO_AO_VENDEDOR`. A interface também prevê uma `JTable` para pedidos, itens e valores totais, além de cards de KPI para total vendido no período, pedidos em aberto e pedidos bloqueados.
+## Motor de Preços e Alçadas Comerciais
 
-`ConsultaVendasController.java`, em parceria com Lucas de Lima, concentra a consulta filtrada, o cálculo dos indicadores e a alimentação da view. A implementação definitiva deverá delegar a consulta parametrizada ao `PedidoDAO`.
+`PricingEngineController.validarMargemLucro(custo, precoVenda, desconto)` calcula o preço praticado e a margem real de lucro. As travas de governança são:
 
-## Regras básicas de pedidos
+- **Desconto até 5%:** `LIBERADO`, com aprovação automática.
+- **Desconto de 5,01% a 10%:** `PENDENTE_APROVACAO`, exigindo parecer gerencial.
+- **Desconto acima de 10% ou margem real negativa:** `HARD_STOP`, bloqueio imediato.
 
-`PedidoController.java`, sob responsabilidade de Matheus Godoy em parceria com Lucas de Lima, contém os pontos de extensão para adição e remoção de itens, cálculo de subtotal e total do pedido, validação de estoque e regras comerciais básicas de Vendas.
+`PricingEngineView` apresenta o resumo das regras, campos de custo, preço e desconto, margem calculada e badge visual do status da operação. A tela está disponível no menu principal.
 
-## Camadas
+## Balcão e Pagamento
 
-### Model — Eduardo Yuri
+### Entidade Produto
 
-As entidades representam o domínio compartilhado: cliente com dados cadastrais e restrições, produto com preço/custo/estoque, item e cabeçalho de pedido, devolução, lote de consolidação e caixa de balcão.
+A entidade `Produto` de balcão possui estritamente os cinco campos definidos: `codigo`, `produto`, `quantidade`, `vendas` e `preco`.
 
-### DAO e banco — Rafael
+### Tela de Balcão
 
-`banco/schema.sql` contém a DDL inicial para PostgreSQL. `Conexao.java` usa `DB_URL`, `DB_USER` e `DB_PASSWORD` do ambiente. Os DAOs são contratos de esqueleto para CRUDs e consultas JDBC parametrizadas.
+`TelaBalcaoView` oferece busca por código, nome ou preço, `JTable` com as colunas Código, Produto, Quantidade, Vendas e Preço, inclusão no carrinho, remoção por código, totalização pela soma das quantidades e atalho para pagamento. `BalcaoController` mantém a seleção de `ItemVenda`, confirma/retira itens e calcula o total.
 
-### Controllers — Matheus Godoy e Lucas de Lima
+### Tela de Pagamento
 
-- `PedidoController`: adiciona/remove itens, calcula subtotais e totais, valida estoque e regras básicas.
-- `ConsultaVendasController`: filtra e lista pedidos e calcula os KPIs do histórico/dashboard.
-- `LiberacaoComercialController`: filtra pedidos, valida checklist e altera o status comercial.
-- `ClienteController`: valida CPF/CNPJ, razão social, limite e restrições.
-- `DevolucaoController`: valida elegibilidade, prazo e ordem comercial de devolução.
-
-### Views — equipe de interface
-
-- `TelaPrincipalView`: launcher central das seis áreas do módulo.
-- `ConsultaHistoricoVendasView`: filtros, tabela de pedidos e KPIs do ciclo de vendas.
-- `CadastroClienteView`: dados cadastrais, regras comerciais e configuração fiscal.
-- `DigitacaoPedidoView`: lançamento de pedidos e atualização de totais.
-- `LiberacaoComercialView`: cockpit de consolidação e liberação.
-- `GestaoDevolucoesView`: solicitação, análise comercial e ordem comercial.
-- `TelaBalcaoView`: PDV, caixa, pagamentos e troco.
+`ClientePagamento` possui os oito campos oficiais: `cpf`, `nome`, `ddd`, `telefone`, `cep`, `endereco`, `numero` e `uf`, cujo padrão é `DF`. `TelaPagamentoView` apresenta o formulário, recebimentos em Dinheiro, PIX e Cartão, total, valor pago, troco e confirmação. `TelaPagamentoController` valida o consumidor, soma múltiplos meios e impede a confirmação quando o valor recebido é insuficiente.
 
 ## Como executar
 
@@ -78,11 +64,11 @@ javac -encoding UTF-8 -d bin $(find src -name "*.java")
 java -cp bin Main
 ```
 
-A conexão PostgreSQL depende da implementação dos DAOs e das variáveis `DB_URL`, `DB_USER` e `DB_PASSWORD`. Não versionar credenciais.
+A conexão PostgreSQL depende das variáveis `DB_URL`, `DB_USER` e `DB_PASSWORD`. Não versionar credenciais.
 
 ## Convenções
 
-- Pacotes seguem a camada: `model`, `dao`, `controller` e `view`; `Main` permanece no pacote padrão para facilitar o launcher do Eclipse.
+- Pacotes seguem a camada: `model`, `dao`, `controller` e `view`; `Main` permanece no pacote padrão para o launcher do Eclipse.
 - Controllers concentram regras de negócio; Views não executam SQL.
 - Operações que alteram múltiplas tabelas devem usar transação explícita.
-- O motor de precificação pertence ao Módulo Financeiro e não deve ser reintroduzido neste repositório.
+- O fluxo de pagamento somente confirma vendas após validar dados do consumidor e recebimento total.
