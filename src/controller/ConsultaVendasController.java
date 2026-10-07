@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Matheus Godoy, em parceria com Lucas de Lima: consulta filtrada e indicadores
+ * Pimenta, em parceria com Lucas de Lima: consulta filtrada e indicadores
  * para o histórico e dashboard do ciclo de vendas.
  */
 public class ConsultaVendasController {
