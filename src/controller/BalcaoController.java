@@ -13,6 +13,7 @@ public class BalcaoController {
     public BalcaoController() {
         produtos.add(new Produto("001", "Produto de demonstração", 100, 0, 10.00));
         produtos.add(new Produto("002", "Item de balcão", 50, 0, 25.50));
+        produtos.add(new Produto("003", "Mouse Gamer", 40, 0, 75.50));
     }
     public List<Produto> buscar(String termo) {
         if (termo == null || termo.isBlank()) return new ArrayList<>(produtos);
@@ -21,13 +22,79 @@ public class BalcaoController {
             || p.getProduto().toLowerCase().contains(filtro)
             || String.valueOf(p.getPreco()).contains(filtro)).collect(Collectors.toList());
     }
-    public void adicionar(String codigo, double quantidade) {
-        Produto produto = produtos.stream().filter(p -> p.getCodigo().equalsIgnoreCase(codigo)).findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado."));
-        if (quantidade <= 0 || quantidade > produto.getQuantidade()) throw new IllegalArgumentException("Quantidade indisponível.");
-        carrinho.add(new ItemVenda(produto, quantidade));
+
+public void adicionar(String codigo, double quantidade) {
+    Produto produto = produtos.stream()
+        .filter(p -> p.getCodigo().equalsIgnoreCase(codigo))
+        .findFirst()
+        .orElseThrow(() ->
+            new IllegalArgumentException("Produto não encontrado.")
+        );
+
+    if (quantidade <= 0) {
+        throw new IllegalArgumentException(
+            "A quantidade deve ser maior que zero."
+        );
     }
+
+    // Procura o produto no carrinho.
+    for (ItemVenda item : carrinho) {
+        if (item.getProduto().getCodigo().equalsIgnoreCase(codigo)) {
+            double novaQuantidade = item.getQuantidade() + quantidade;
+
+            if (novaQuantidade > produto.getQuantidade()) {
+                throw new IllegalArgumentException(
+                    "Quantidade indisponível no estoque."
+                );
+            }
+
+            // Atualiza a linha existente.
+            item.setQuantidade(novaQuantidade);
+            return; // Importante: não cria outro item!
+        }
+    }
+
+    // Só chega aqui se o produto ainda não estiver no carrinho.
+    if (quantidade > produto.getQuantidade()) {
+        throw new IllegalArgumentException(
+            "Quantidade indisponível no estoque."
+        );
+    }
+
+    carrinho.add(new ItemVenda(produto, quantidade));
+}
     public void remover(String codigo) { carrinho.removeIf(i -> i.getProduto().getCodigo().equalsIgnoreCase(codigo)); }
     public List<ItemVenda> getCarrinho() { return carrinho; }
     public double calcularTotal() { return carrinho.stream().mapToDouble(ItemVenda::getSubtotal).sum(); }
+    
+    public void limparCarrinho() {
+        carrinho.clear();
+    }
+    
+    
+    public void alterarQuantidade(String codigo, double novaQuantidade) {
+        ItemVenda item = carrinho.stream()
+            .filter(i -> i.getProduto().getCodigo()
+                .equalsIgnoreCase(codigo))
+            .findFirst()
+            .orElseThrow(() ->
+                new IllegalArgumentException(
+                    "Produto não encontrado no carrinho."
+                )
+            );
+
+        if (novaQuantidade <= 0) {
+            throw new IllegalArgumentException(
+                "A quantidade deve ser maior que zero."
+            );
+        }
+
+        if (novaQuantidade > item.getProduto().getQuantidade()) {
+            throw new IllegalArgumentException(
+                "Quantidade indisponível no estoque."
+            );
+        }
+
+        item.setQuantidade(novaQuantidade);
+    }
 }
