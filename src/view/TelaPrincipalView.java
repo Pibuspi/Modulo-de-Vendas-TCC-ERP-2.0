@@ -14,7 +14,6 @@ public class TelaPrincipalView extends JFrame {
         adicionar(menu, "Motor de Preços / Alçadas", () -> abrir(new PricingEngineView(), "Pricing Engine"));
         adicionar(menu, "Liberação Comercial", () -> abrir(new LiberacaoComercialView(), "Liberação Comercial"));
         adicionar(menu, "Gestão de Devoluções", () -> abrir(new GestaoDevolucoesView(), "Gestão de Devoluções"));
-        adicionar(menu, "Consulta de Pedidos", () -> abrir(new ConsultaHistoricoVendasView(), "Consulta de Pedidos"));
         adicionar(menu, "Tela Balcão / Pagamento", () -> abrir(new TelaBalcaoView(), "Tela de Balcão"));
         add(menu);
     }
