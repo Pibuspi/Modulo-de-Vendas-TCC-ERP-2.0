@@ -1,18 +1,37 @@
 package model;
 
-/** Resultado de uma validação de margem e alçada comercial. */
+import java.math.BigDecimal;
+import java.util.List;
+
 public class ResultadoPrecificacao {
-    public enum StatusAprovacao { LIBERADO, PENDENTE_APROVACAO, HARD_STOP }
-    private double precoPraticado, descontoAplicado, margemReal;
-    private StatusAprovacao statusAprovacao;
-    private String justificativa;
-    public ResultadoPrecificacao(double precoPraticado, double descontoAplicado, double margemReal, StatusAprovacao status, String justificativa) {
-        this.precoPraticado = precoPraticado; this.descontoAplicado = descontoAplicado; this.margemReal = margemReal;
-        this.statusAprovacao = status; this.justificativa = justificativa;
-    }
-    public double getPrecoPraticado() { return precoPraticado; }
-    public double getDescontoAplicado() { return descontoAplicado; }
-    public double getMargemReal() { return margemReal; }
-    public StatusAprovacao getStatusAprovacao() { return statusAprovacao; }
-    public String getJustificativa() { return justificativa; }
+    private List<ItemPedido> itens;
+    private BigDecimal subtotal;
+    private BigDecimal descontoTotal;
+    private BigDecimal valorTotal;
+    private boolean possuiHardStop;
+    private boolean possuiAlerta;
+    private String statusGeral;
+
+    public ResultadoPrecificacao() {}
+
+    public List<ItemPedido> getItens() { return itens; }
+    public void setItens(List<ItemPedido> itens) { this.itens = itens; }
+
+    public BigDecimal getSubtotal() { return subtotal != null ? subtotal : BigDecimal.ZERO; }
+    public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
+
+    public BigDecimal getDescontoTotal() { return descontoTotal != null ? descontoTotal : BigDecimal.ZERO; }
+    public void setDescontoTotal(BigDecimal descontoTotal) { this.descontoTotal = descontoTotal; }
+
+    public BigDecimal getValorTotal() { return valorTotal != null ? valorTotal : BigDecimal.ZERO; }
+    public void setValorTotal(BigDecimal valorTotal) { this.valorTotal = valorTotal; }
+
+    public boolean isPossuiHardStop() { return possuiHardStop; }
+    public void setPossuiHardStop(boolean possuiHardStop) { this.possuiHardStop = possuiHardStop; }
+
+    public boolean isPossuiAlerta() { return possuiAlerta; }
+    public void setPossuiAlerta(boolean possuiAlerta) { this.possuiAlerta = possuiAlerta; }
+
+    public String getStatusGeral() { return statusGeral; }
+    public void setStatusGeral(String statusGeral) { this.statusGeral = statusGeral; }
 }
