@@ -21,14 +21,9 @@ Todo o código funcional está unificado sob `src/`. Não existem subprojetos so
 
 ## Matriz oficial de responsabilidades
 
-| Integrante | Módulo / Tela | `model/` | `controller/` | `view/` | `dao/` & `banco/` |
-|---|---|---|---|---|---|
-| Eúde | Cadastro de Clientes | `Cliente.java` | `ClienteController.java` (validações & status) | `CadastroClienteView.java` | `ClienteDAO.java` |
-| Rafael | Digitação de Pedidos | `PedidoVenda.java`, `ItemPedido.java` | `PedidoController.java` (itens & totais) | `DigitacaoPedidoView.java` | `PedidoDAO.java` |
-| Matheus Godoy | Motor de Preços (Pricing) | `RegraPreco.java`, `AlcadaComercial.java`, `ResultadoPrecificacao.java` | `PricingEngineController.java` (margens & hard stops) | `PricingEngineView.java` | `AlcadaDAO.java` |
-| Lucas de Lima | Liberação Comercial | `LoteConsolidacaoComercial.java` | `LiberacaoComercialController.java` (status & cockpit) | `LiberacaoComercialView.java` | Atualizações em `PedidoDAO` |
-| Pietro | Gestão de Devoluções | `Devolucao.java`, `ItemDevolucao.java` | `DevolucaoController.java` (prazos & elegibilidade) | `GestaoDevolucoesView.java` | `DevolucaoDAO.java` |
-| Eduardo Yuri | Tela de Balcão & Pagamento | `Produto.java`, `ItemVenda.java`, `ClientePagamento.java` | `BalcaoController.java`, `TelaPagamentoController.java` | `TelaBalcaoView.java`, `TelaPagamentoView.java` | `VendaBalcaoDAO.java` |
+- **BackEnd:** Eduardo Yuri, Rafael Pimenta e Matheus Godoy(Líder do BackEnd)
+
+- **FrontEnd:** Lucas de Lima(QA), Eúde Emanuel Paris(Líder do FrontEnd) e Pietro(Representante do módulo)
 
 ## Motor de Preços e Alçadas Comerciais
 
