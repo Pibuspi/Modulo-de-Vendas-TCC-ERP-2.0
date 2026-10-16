@@ -1,36 +1,85 @@
 package controller;
 
-import model.ResultadoPrecificacao;
-import model.ResultadoPrecificacao.StatusAprovacao;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
-/** Matheus Godoy: motor de margens, alçadas e bloqueios da venda. */
+/**
+ * Controller responsável pelas Regras de Negócio do Motor de Preços (Pricing Engine).
+ * Foco em processamento de dados, cálculo de margem real, validação de descontos e travas de Hard Stop.
+ */
 public class PricingEngineController {
-    public static final double DESCONTO_AUTOMATICO_MAXIMO = 5.0;
-    public static final double DESCONTO_GERENTE_MAXIMO = 10.0;
 
-    /** Calcula margem real: (preço praticado - custo) / preço praticado * 100. */
-    public ResultadoPrecificacao validarMargemLucro(double custo, double precoVenda, double desconto) {
-        if (custo < 0 || precoVenda <= 0 || desconto < 0) {
-            return resultado(precoVenda, desconto, -100.0, StatusAprovacao.HARD_STOP, "Valores de custo, preço ou desconto inválidos.");
+    /**
+     * DTO interno para transportar o resultado da simulação de preço de forma limpa.
+     */
+    public static class ResultadoSimulacao {
+        private BigDecimal precoPraticado;
+        private BigDecimal margemReal;
+        private int faixa; // 0: LIBERADO, 1: PENDENTE_APROVACAO, 2: HARD_STOP
+        private String status;
+        private String motivo;
+
+        public ResultadoSimulacao(BigDecimal precoPraticado, BigDecimal margemReal, int faixa, String status, String motivo) {
+            this.precoPraticado = precoPraticado;
+            this.margemReal = margemReal;
+            this.faixa = faixa;
+            this.status = status;
+            this.motivo = motivo;
         }
-        double precoPraticado = precoVenda * (1.0 - desconto / 100.0);
-        double margemReal = precoPraticado <= 0 ? -100.0 : ((precoPraticado - custo) / precoPraticado) * 100.0;
-        StatusAprovacao status;
-        String justificativa;
-        if (desconto > DESCONTO_GERENTE_MAXIMO || margemReal < 0) {
-            status = StatusAprovacao.HARD_STOP;
-            justificativa = "Desconto acima de 10% ou margem real negativa.";
-        } else if (desconto > DESCONTO_AUTOMATICO_MAXIMO) {
-            status = StatusAprovacao.PENDENTE_APROVACAO;
-            justificativa = "Desconto exige parecer e aprovação gerencial.";
-        } else {
-            status = StatusAprovacao.LIBERADO;
-            justificativa = "Operação liberada automaticamente.";
-        }
-        return resultado(precoPraticado, desconto, margemReal, status, justificativa);
+
+        public BigDecimal getPrecoPraticado() { return precoPraticado; }
+        public BigDecimal getMargemReal() { return margemReal; }
+        public int getFaixa() { return faixa; }
+        public String getStatus() { return status; }
+        public String getMotivo() { return motivo; }
     }
 
-    private ResultadoPrecificacao resultado(double preco, double desconto, double margem, StatusAprovacao status, String justificativa) {
-        return new ResultadoPrecificacao(preco, desconto, margem, status, justificativa);
+    /**
+     * Valida a margem de lucro, calcula o preço praticado e define a faixa de alçada.
+     */
+    public ResultadoSimulacao validarMargemLucro(BigDecimal custo, BigDecimal precoTabela, BigDecimal descontoPercentual, BigDecimal margemMinimaPermitida) {
+        if (custo == null) custo = BigDecimal.ZERO;
+        if (precoTabela == null) precoTabela = BigDecimal.ZERO;
+        if (descontoPercentual == null) descontoPercentual = BigDecimal.ZERO;
+        if (margemMinimaPermitida == null) margemMinimaPermitida = new BigDecimal("18.00");
+
+        // Preço Praticado = Preço Tabela * (1 - Desconto / 100)
+        BigDecimal cem = new BigDecimal("100.00");
+        BigDecimal fatorDesconto = BigDecimal.ONE.subtract(descontoPercentual.divide(cem, 4, RoundingMode.HALF_UP));
+        BigDecimal precoPraticado = precoTabela.multiply(fatorDesconto).setScale(2, RoundingMode.HALF_UP);
+
+        // Margem Real = ((Preço Praticado - Custo) / Preço Praticado) * 100
+        BigDecimal margemReal = BigDecimal.ZERO;
+        if (precoPraticado.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal lucro = precoPraticado.subtract(custo);
+            margemReal = lucro.divide(precoPraticado, 4, RoundingMode.HALF_UP)
+                    .multiply(cem)
+                    .setScale(2, RoundingMode.HALF_UP);
+        } else {
+            margemReal = new BigDecimal("-100.00");
+        }
+
+        int faixa;
+        String status;
+        String motivo;
+
+        BigDecimal limiteGerente = new BigDecimal("10.00");
+        BigDecimal limiteAuto = new BigDecimal("5.00");
+
+        if (descontoPercentual.compareTo(limiteGerente) > 0 || margemReal.compareTo(BigDecimal.ZERO) < 0) {
+            faixa = 2; // FAIXA_HARD_STOP
+            status = "HARD_STOP";
+            motivo = "Desconto acima de 10% ou margem real negativa.";
+        } else if (descontoPercentual.compareTo(limiteAuto) > 0) {
+            faixa = 1; // FAIXA_PENDENTE
+            status = "PENDENTE_APROVACAO";
+            motivo = "Desconto entre 5,01% e 10% exige parecer e aprovação gerencial.";
+        } else {
+            faixa = 0; // FAIXA_LIBERADO
+            status = "LIBERADO";
+            motivo = "Operação dentro da alçada padrão, liberada automaticamente.";
+        }
+
+        return new ResultadoSimulacao(precoPraticado, margemReal, faixa, status, motivo);
     }
 }
