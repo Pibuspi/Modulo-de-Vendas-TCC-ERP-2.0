@@ -53,6 +53,20 @@ public class BalcaoController {
         carrinho.remove(indice);
     }
 
+    public void remover(String codigo) {
+        carrinho.removeIf(item -> item.getProduto().getCodigo().equalsIgnoreCase(codigo));
+    }
+
+    public void alterarQuantidade(String codigo, double quantidade) {
+        if (!Double.isFinite(quantidade) || quantidade <= 0) throw new IllegalArgumentException("Informe uma quantidade válida.");
+        ItemVenda item = carrinho.stream().filter(i -> i.getProduto().getCodigo().equalsIgnoreCase(codigo)).findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Produto não está no carrinho."));
+        if (quantidade > item.getProduto().getQuantidade()) throw new IllegalArgumentException("Quantidade superior ao estoque disponível.");
+        item.setQuantidade(quantidade);
+    }
+
+    public void limparCarrinho() { carrinho.clear(); }
+
     public List<ItemVenda> getCarrinho() { return Collections.unmodifiableList(carrinho); }
     public double calcularTotal() { return carrinho.stream().mapToDouble(ItemVenda::getSubtotal).sum(); }
     public String getUltimoErro() { return ultimoErro; }
