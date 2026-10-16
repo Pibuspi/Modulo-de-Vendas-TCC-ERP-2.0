@@ -1,100 +1,59 @@
 package controller;
 
+import dao.ProdutoDAO;
 import model.ItemVenda;
 import model.Produto;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
-/** Eduardo Yuri: busca de produtos, composição do carrinho e total da compra. */
+/** Yuri: catálogo JDBC, validação de estoque e carrinho de compras em memória. */
 public class BalcaoController {
-    private final List<Produto> produtos = new ArrayList<>();
+    private final ProdutoDAO produtoDAO;
     private final List<ItemVenda> carrinho = new ArrayList<>();
-    public BalcaoController() {
-        produtos.add(new Produto("001", "Produto de demonstração", 100, 0, 10.00));
-        produtos.add(new Produto("002", "Item de balcão", 50, 0, 25.50));
-        produtos.add(new Produto("003", "Mouse Gamer", 40, 0, 75.50));
-    }
+    private String ultimoErro;
+
+    public BalcaoController() { this(new ProdutoDAO()); }
+    public BalcaoController(ProdutoDAO produtoDAO) { this.produtoDAO = produtoDAO; }
+
     public List<Produto> buscar(String termo) {
-        if (termo == null || termo.isBlank()) return new ArrayList<>(produtos);
-        String filtro = termo.toLowerCase();
-        return produtos.stream().filter(p -> p.getCodigo().equalsIgnoreCase(termo)
-            || p.getProduto().toLowerCase().contains(filtro)
-            || String.valueOf(p.getPreco()).contains(filtro)).collect(Collectors.toList());
+        try {
+            ultimoErro = null;
+            return produtoDAO.buscar(termo);
+        } catch (SQLException erro) {
+            ultimoErro = "Não foi possível consultar o catálogo: " + erro.getMessage();
+            return Collections.emptyList();
+        }
     }
 
-public void adicionar(String codigo, double quantidade) {
-    Produto produto = produtos.stream()
-        .filter(p -> p.getCodigo().equalsIgnoreCase(codigo))
-        .findFirst()
-        .orElseThrow(() ->
-            new IllegalArgumentException("Produto não encontrado.")
-        );
-
-    if (quantidade <= 0) {
-        throw new IllegalArgumentException(
-            "A quantidade deve ser maior que zero."
-        );
-    }
-
-    // Procura o produto no carrinho.
-    for (ItemVenda item : carrinho) {
-        if (item.getProduto().getCodigo().equalsIgnoreCase(codigo)) {
-            double novaQuantidade = item.getQuantidade() + quantidade;
-
-            if (novaQuantidade > produto.getQuantidade()) {
-                throw new IllegalArgumentException(
-                    "Quantidade indisponível no estoque."
-                );
+    public void adicionar(String codigo, double quantidade) {
+        if (codigo == null || codigo.isBlank()) throw new IllegalArgumentException("Selecione um produto.");
+        if (!Double.isFinite(quantidade) || quantidade <= 0) throw new IllegalArgumentException("Informe uma quantidade válida.");
+        try {
+            Produto produto = produtoDAO.buscarPorCodigo(codigo);
+            if (produto == null) throw new IllegalArgumentException("Produto não encontrado.");
+            double quantidadeNoCarrinho = carrinho.stream()
+                .filter(item -> item.getProduto().getCodigo().equalsIgnoreCase(codigo))
+                .mapToDouble(ItemVenda::getQuantidade).sum();
+            if (quantidadeNoCarrinho + quantidade > produto.getQuantidade()) {
+                throw new IllegalArgumentException("Quantidade superior ao estoque disponível.");
             }
-
-            // Atualiza a linha existente.
-            item.setQuantidade(novaQuantidade);
-            return; // Importante: não cria outro item!
+            ItemVenda existente = carrinho.stream()
+                .filter(item -> item.getProduto().getCodigo().equalsIgnoreCase(codigo)).findFirst().orElse(null);
+            if (existente == null) carrinho.add(new ItemVenda(produto, quantidade));
+            else existente.setQuantidade(existente.getQuantidade() + quantidade);
+        } catch (SQLException erro) {
+            throw new IllegalStateException("Não foi possível validar o estoque: " + erro.getMessage(), erro);
         }
     }
 
-    // Só chega aqui se o produto ainda não estiver no carrinho.
-    if (quantidade > produto.getQuantidade()) {
-        throw new IllegalArgumentException(
-            "Quantidade indisponível no estoque."
-        );
+    public void remover(int indice) {
+        if (indice < 0 || indice >= carrinho.size()) throw new IllegalArgumentException("Selecione um item do carrinho.");
+        carrinho.remove(indice);
     }
 
-    carrinho.add(new ItemVenda(produto, quantidade));
-}
-    public void remover(String codigo) { carrinho.removeIf(i -> i.getProduto().getCodigo().equalsIgnoreCase(codigo)); }
-    public List<ItemVenda> getCarrinho() { return carrinho; }
+    public List<ItemVenda> getCarrinho() { return Collections.unmodifiableList(carrinho); }
     public double calcularTotal() { return carrinho.stream().mapToDouble(ItemVenda::getSubtotal).sum(); }
-    
-    public void limparCarrinho() {
-        carrinho.clear();
-    }
-    
-    
-    public void alterarQuantidade(String codigo, double novaQuantidade) {
-        ItemVenda item = carrinho.stream()
-            .filter(i -> i.getProduto().getCodigo()
-                .equalsIgnoreCase(codigo))
-            .findFirst()
-            .orElseThrow(() ->
-                new IllegalArgumentException(
-                    "Produto não encontrado no carrinho."
-                )
-            );
-
-        if (novaQuantidade <= 0) {
-            throw new IllegalArgumentException(
-                "A quantidade deve ser maior que zero."
-            );
-        }
-
-        if (novaQuantidade > item.getProduto().getQuantidade()) {
-            throw new IllegalArgumentException(
-                "Quantidade indisponível no estoque."
-            );
-        }
-
-        item.setQuantidade(novaQuantidade);
-    }
+    public String getUltimoErro() { return ultimoErro; }
 }
