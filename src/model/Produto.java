@@ -1,9 +1,26 @@
 package model;
-/** Produto comercial; Eduardo Yuri mantém SKU, fiscalidade, preço, custo e estoque. */
+
+/** Eduardo Yuri: entidade de produto de balcão com os cinco atributos oficiais. */
 public class Produto {
-    private Long id; private String sku, descricao, unidadeMedida, ncm; private double precoTabela, custo, estoqueDisponivel;
-    public Long getId(){return id;} public void setId(Long v){id=v;} public String getSku(){return sku;} public void setSku(String v){sku=v;}
-    public String getDescricao(){return descricao;} public void setDescricao(String v){descricao=v;} public String getUnidadeMedida(){return unidadeMedida;} public void setUnidadeMedida(String v){unidadeMedida=v;}
-    public String getNcm(){return ncm;} public void setNcm(String v){ncm=v;} public double getPrecoTabela(){return precoTabela;} public void setPrecoTabela(double v){precoTabela=v;}
-    public double getCusto(){return custo;} public void setCusto(double v){custo=v;} public double getEstoqueDisponivel(){return estoqueDisponivel;} public void setEstoqueDisponivel(double v){estoqueDisponivel=v;}
+    private String codigo;
+    private String produto;
+    private double quantidade;
+    private double vendas;
+    private double preco;
+
+    public Produto() {}
+    public Produto(String codigo, String produto, double quantidade, double vendas, double preco) {
+        this.codigo = codigo; this.produto = produto; this.quantidade = quantidade;
+        this.vendas = vendas; this.preco = preco;
+    }
+    public String getCodigo() { return codigo; }
+    public void setCodigo(String codigo) { this.codigo = codigo; }
+    public String getProduto() { return produto; }
+    public void setProduto(String produto) { this.produto = produto; }
+    public double getQuantidade() { return quantidade; }
+    public void setQuantidade(double quantidade) { this.quantidade = quantidade; }
+    public double getVendas() { return vendas; }
+    public void setVendas(double vendas) { this.vendas = vendas; }
+    public double getPreco() { return preco; }
+    public void setPreco(double preco) { this.preco = preco; }
 }
