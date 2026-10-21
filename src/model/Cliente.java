@@ -1,5 +1,7 @@
 package model;
 
+/** Eúde Cadastro de Clientes
+
 /** Entidade comercial de cliente; Eduardo Yuri mantém os campos e invariantes do domínio. */
 public class Cliente {
     private Long id; private String cpfCnpj, razaoSocial, nomeFantasia, condicaoPagamento, motivoBloqueio;
