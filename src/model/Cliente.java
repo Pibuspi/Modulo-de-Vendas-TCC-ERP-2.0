@@ -1,6 +1,6 @@
 package model;
 
-/** Eúde Cadastro de Clientes
+/** Eúde Cadastro de Clientes. */
 
 /** Entidade comercial de cliente; Eduardo Yuri mantém os campos e invariantes do domínio. */
 public class Cliente {
