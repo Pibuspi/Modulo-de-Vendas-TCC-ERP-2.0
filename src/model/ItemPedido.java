@@ -1,5 +1,5 @@
 package model;
-/** Item do pedido; subtotal = quantidade * preço - desconto. */
+/** Rafael digitação de pedido Item do pedido; subtotal = quantidade * preço - desconto. */
 public class ItemPedido {
     private Produto produto;
     private double quantidade, precoUnitario, desconto;
