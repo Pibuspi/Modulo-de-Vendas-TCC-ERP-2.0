@@ -1,6 +1,6 @@
 package model;
 import java.util.*;
-/** Processo de devolução, parecer e ordem de estorno. */
+/** Pietro Processo de devolução, parecer e ordem de estorno. */
 public class Devolucao {
   private Long id;
   private String motivo, parecer, ordemEstorno;
