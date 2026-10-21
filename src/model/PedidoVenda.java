@@ -1,6 +1,6 @@
 package model;
 import java.util.*;
-/** Cabeçalho e itens de venda; o controller deve aplicar as validações comerciais. */
+/** Rafel digitação de pedido Cabeçalho e itens de venda; o controller deve aplicar as validações comerciais. */
 public class PedidoVenda {
     public enum Status { ABERTO, BLOQUEADO, PENDENTE_APROVACAO, LIBERADO_PARA_FATURAMENTO, DEVOLVIDO_AO_VENDEDOR, FATURADO, CANCELADO }
     private Long id;
