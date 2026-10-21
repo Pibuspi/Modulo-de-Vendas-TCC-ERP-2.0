@@ -1,5 +1,7 @@
 package model;
 
+/** Matheus Godoy Motor de preços e alçadas
+
 import java.math.BigDecimal;
 import java.util.Date;
 
