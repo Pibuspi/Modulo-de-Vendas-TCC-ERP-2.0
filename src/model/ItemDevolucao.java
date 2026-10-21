@@ -1,5 +1,5 @@
 package model;
-/** Item elegível para devolução, com quantidade e motivo específico. */
+/** Pietro Item elegível para devolução, com quantidade e motivo específico. */
 public class ItemDevolucao {
   private Produto produto;
   private double quantidade;
