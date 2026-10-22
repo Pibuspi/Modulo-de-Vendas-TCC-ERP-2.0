@@ -1,81 +1,22 @@
 package model;
 
-import java.math.BigDecimal;
-
+/** Item de pedido com desconto monetário e percentual. */
 public class ItemPedido {
-    private int idProduto;
-    private int quantidade;
-    private BigDecimal precoUnitario;
-    private BigDecimal descontoPercentual;
-    private BigDecimal margemReal;
-    private String statusPricing;
-
+    private int idItem, idPedido;
+    private Produto produto;
+    private double quantidade, precoUnitario, desconto, descontoPercentual, subtotalItem;
     public ItemPedido() {}
-
-    public ItemPedido(int idProduto, int quantidade, BigDecimal precoUnitario, BigDecimal descontoPercentual) {
-        this.idProduto = idProduto;
-        this.quantidade = quantidade;
-        this.precoUnitario = precoUnitario != null ? precoUnitario : BigDecimal.ZERO;
-        this.descontoPercentual = descontoPercentual != null ? descontoPercentual : BigDecimal.ZERO;
-    }
-
-    public int getIdProduto() {
-        return idProduto;
-    }
-
-    public void setIdProduto(int idProduto) {
-        this.idProduto = idProduto;
-    }
-
-    public int getQuantidade() {
-        return quantidade;
-    }
-
-    public void setQuantidade(int quantidade) {
-        this.quantidade = quantidade;
-    }
-
-    public BigDecimal getPrecoUnitario() {
-        return precoUnitario != null ? precoUnitario : BigDecimal.ZERO;
-    }
-
-    public void setPrecoUnitario(BigDecimal precoUnitario) {
-        this.precoUnitario = precoUnitario;
-    }
-
-    public BigDecimal getDescontoPercentual() {
-        return descontoPercentual != null ? descontoPercentual : BigDecimal.ZERO;
-    }
-
-    public void setDescontoPercentual(BigDecimal descontoPercentual) {
-        this.descontoPercentual = descontoPercentual;
-    }
-
-    public BigDecimal getMargemReal() {
-        return margemReal != null ? margemReal : BigDecimal.ZERO;
-    }
-
-    public void setMargemReal(BigDecimal margemReal) {
-        this.margemReal = margemReal;
-    }
-
-    public String getStatusPricing() {
-        return statusPricing;
-    }
-
-    public void setStatusPricing(String statusPricing) {
-        this.statusPricing = statusPricing;
-    }
-
-    public String getStatusAprovacao() {
-        return statusPricing;
-    }
-
-    // Método exigido pelo PedidoVenda.java para somar o total da nota
-    public double getSubtotal() {
-        if (precoUnitario == null) {
-            return 0.0;
-        }
-        return precoUnitario.multiply(BigDecimal.valueOf(quantidade)).doubleValue();
-    }
+    public ItemPedido(int idItem, int idPedido, Produto produto, double quantidade, double precoUnitario,
+                      double desconto, double descontoPercentual) { this.idItem=idItem;this.idPedido=idPedido;this.produto=produto;this.quantidade=quantidade;this.precoUnitario=precoUnitario;this.desconto=desconto;this.descontoPercentual=descontoPercentual;recalcular(); }
+    public int getIdItem(){return idItem;} public void setIdItem(int v){idItem=v;}
+    public int getIdPedido(){return idPedido;} public void setIdPedido(int v){idPedido=v;}
+    public Produto getProduto(){return produto;} public void setProduto(Produto v){produto=v;}
+    public int getIdProduto(){return produto==null?0:produto.getCodigo()==null?0:produto.getCodigo().hashCode();}
+    public double getQuantidade(){return quantidade;} public void setQuantidade(double v){quantidade=v;recalcular();}
+    public double getPrecoUnitario(){return precoUnitario;} public void setPrecoUnitario(double v){precoUnitario=v;recalcular();}
+    public double getDesconto(){return desconto;} public void setDesconto(double v){desconto=v;recalcular();}
+    public double getDescontoPercentual(){return descontoPercentual;} public void setDescontoPercentual(double v){descontoPercentual=v;recalcular();}
+    public double getSubtotalItem(){recalcular();return subtotalItem;} public void setSubtotalItem(double v){subtotalItem=v;}
+    public double getSubtotal(){recalcular();return subtotalItem;}
+    public void recalcular(){double bruto=quantidade*precoUnitario; double percentual=bruto*descontoPercentual/100.0; subtotalItem=bruto-desconto-percentual;}
 }

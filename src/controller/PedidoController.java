@@ -6,7 +6,7 @@ import model.PedidoVenda;
 /** Pimenta/Rafael: itens, totais e validações básicas de pedidos de venda. */
 public class PedidoController {
     public void adicionarItem(PedidoVenda pedido, ItemPedido item) {
-        if (pedido == null || item == null || item.getQuantidade() <= 0 || item.getPrecoUnitario().signum() < 0) {
+        if (pedido == null || item == null || item.getQuantidade() <= 0 || item.getPrecoUnitario() < 0) {
             throw new IllegalArgumentException("Dados comerciais inválidos.");
         }
         pedido.getItens().add(item);
