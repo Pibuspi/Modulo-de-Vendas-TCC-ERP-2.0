@@ -15,16 +15,15 @@ public class LiberacaoComercialView extends JPanel {
         "LIBERADO_PARA_FATURAMENTO", "DEVOLVIDO_AO_VENDEDOR"};
     private static final String[] PAGAMENTOS = {"TODOS", "À Vista", "7 dias", "15 dias", "30 dias",
         "30/60 dias"};
-    private static final String[] COLUNAS = {"Pedido", "Cliente", "Vendedor", "Pagamento", "Status", "Total"};
+    private static final String[] COLUNAS = {"Pedido", "Cliente", "Pagamento", "Status", "Total"};
 
     private static final int COLUNA_CLIENTE = 1;
-    private static final int COLUNA_PAGAMENTO = 3;
-    private static final int COLUNA_STATUS = 4;
-    private static final int COLUNA_TOTAL = 5;
+    private static final int COLUNA_PAGAMENTO = 2;
+    private static final int COLUNA_STATUS = 3;
+    private static final int COLUNA_TOTAL = 4;
 
     // Filtros
     private final JTextField campoCliente = new JTextField(10);
-    private final JTextField campoVendedor = new JTextField(10);
     private final JComboBox<String> campoPagamento = new JComboBox<>(PAGAMENTOS);
     private final JComboBox<String> campoStatus = new JComboBox<>(STATUS);
 
@@ -101,8 +100,6 @@ public class LiberacaoComercialView extends JPanel {
         filtros.setBorder(BorderFactory.createTitledBorder("Filtros"));
         filtros.add(new JLabel("Cliente:"));
         filtros.add(campoCliente);
-        filtros.add(new JLabel("Vendedor:"));
-        filtros.add(campoVendedor);
         filtros.add(new JLabel("Pagamento:"));
         filtros.add(campoPagamento);
         filtros.add(new JLabel("Status:"));
@@ -137,7 +134,7 @@ public class LiberacaoComercialView extends JPanel {
     }
 
     private void ajustarLarguraColunas() {
-        int[] larguras = {52, 125, 70, 82, 198, 90};
+        int[] larguras = {52, 150, 90, 200, 90};
         for (int i = 0; i < larguras.length; i++) {
             tabelaPedidos.getColumnModel().getColumn(i).setPreferredWidth(larguras[i]);
         }
@@ -190,7 +187,6 @@ public class LiberacaoComercialView extends JPanel {
     // Ações (apenas visuais)
     private void limparFiltros() {
         campoCliente.setText("");
-        campoVendedor.setText("");
         campoPagamento.setSelectedIndex(0);
         campoStatus.setSelectedIndex(0);
     }
@@ -209,54 +205,29 @@ public class LiberacaoComercialView extends JPanel {
                 "Liberação Comercial", JOptionPane.INFORMATION_MESSAGE);
     }
 
+    /** Leva para a tela de Gestão de Devoluções, trocando o conteúdo da janela onde esta tela está. */
     private void devolver() {
-        if (tabelaPedidos.getSelectedRowCount() == 0) {
-            avisar("Selecione ao menos um pedido para devolver.", "Devolver ao Vendedor");
+        Container janela = getParent();
+        if (janela == null) {
             return;
         }
-        abrirDialogoDevolucao();
+        GestaoDevolucoesView devolucoes = new GestaoDevolucoesView();
+        janela.remove(this);
+        if (janela.getLayout() instanceof BorderLayout) {
+            janela.add(devolucoes, BorderLayout.CENTER);
+        } else {
+            janela.add(devolucoes);
+        }
+        janela.revalidate();
+        janela.repaint();
+        Window w = SwingUtilities.getWindowAncestor(janela);
+        if (w != null) {
+            w.pack();
+        }
     }
 
     private void avisar(String mensagem, String titulo) {
         JOptionPane.showMessageDialog(this, mensagem, titulo, JOptionPane.WARNING_MESSAGE);
-    }
-
-    private void abrirDialogoDevolucao() {
-        JDialog dialogo = new JDialog(JOptionPane.getFrameForComponent(this), "Devolver ao Vendedor", true);
-
-        JTextArea justificativa = new JTextArea(6, 32);
-        justificativa.setLineWrap(true);
-        justificativa.setWrapStyleWord(true);
-
-        JButton cancelar = new JButton("Cancelar");
-        JButton confirmar = new JButton("Confirmar Devolução");
-        cancelar.addActionListener(e -> dialogo.dispose());
-        confirmar.addActionListener(e -> {
-            if (justificativa.getText().isBlank()) {
-                avisar("Informe a justificativa da devolução.", "Validação");
-                return;
-            }
-            // TODO-INTEGRACAO: chamar o LiberacaoComercialController quando existir.
-            JOptionPane.showMessageDialog(dialogo, "Devolução validada e pronta para envio.",
-                    "Devolver ao Vendedor", JOptionPane.INFORMATION_MESSAGE);
-            dialogo.dispose();
-        });
-
-        JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        botoes.add(cancelar);
-        botoes.add(confirmar);
-
-        JPanel conteudo = new JPanel(new BorderLayout(10, 10));
-        conteudo.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
-        conteudo.add(new JLabel("Justificativa da devolução *"), BorderLayout.NORTH);
-        conteudo.add(new JScrollPane(justificativa), BorderLayout.CENTER);
-        conteudo.add(botoes, BorderLayout.SOUTH);
-
-        dialogo.add(conteudo);
-        dialogo.pack();
-        dialogo.setLocationRelativeTo(this);
-        dialogo.setResizable(false);
-        dialogo.setVisible(true);
     }
 
     // Atualizações de tela
@@ -306,14 +277,14 @@ public class LiberacaoComercialView extends JPanel {
     // Dados de exemplo. TODO-INTEGRACAO: trocar pela lista de pedidos do Controller.
     private void carregarPedidosExemplo() {
         modeloPedidos.setRowCount(0);
-        modeloPedidos.addRow(new Object[]{"1001", "Comercial Alfa Ltda", "Marcos", "30 dias", "PENDENTE_APROVACAO", 12500.00});
-        modeloPedidos.addRow(new Object[]{"1002", "Comercial Alfa Ltda", "Marcos", "30 dias", "PENDENTE_APROVACAO", 8340.50});
-        modeloPedidos.addRow(new Object[]{"1003", "Distribuidora Beta", "Juliana", "15 dias", "ABERTO", 4720.00});
-        modeloPedidos.addRow(new Object[]{"1004", "Mercado Gama", "Juliana", "À Vista", "BLOQUEADO", 1980.90});
-        modeloPedidos.addRow(new Object[]{"1005", "Atacado Delta", "Marcos", "30/60 dias", "PENDENTE_APROVACAO", 23600.00});
-        modeloPedidos.addRow(new Object[]{"1006", "Distribuidora Beta", "Juliana", "15 dias", "LIBERADO_PARA_FATURAMENTO", 6150.75});
-        modeloPedidos.addRow(new Object[]{"1007", "Loja Épsilon", "Marcos", "7 dias", "DEVOLVIDO_AO_VENDEDOR", 3210.00});
-        modeloPedidos.addRow(new Object[]{"1008", "Mercado Gama", "Juliana", "À Vista", "ABERTO", 2890.40});
+        modeloPedidos.addRow(new Object[]{"1001", "Comercial Alfa Ltda", "30 dias", "PENDENTE_APROVACAO", 12500.00});
+        modeloPedidos.addRow(new Object[]{"1002", "Comercial Alfa Ltda", "30 dias", "PENDENTE_APROVACAO", 8340.50});
+        modeloPedidos.addRow(new Object[]{"1003", "Distribuidora Beta", "15 dias", "ABERTO", 4720.00});
+        modeloPedidos.addRow(new Object[]{"1004", "Mercado Gama", "À Vista", "BLOQUEADO", 1980.90});
+        modeloPedidos.addRow(new Object[]{"1005", "Atacado Delta", "30/60 dias", "PENDENTE_APROVACAO", 23600.00});
+        modeloPedidos.addRow(new Object[]{"1006", "Distribuidora Beta", "15 dias", "LIBERADO_PARA_FATURAMENTO", 6150.75});
+        modeloPedidos.addRow(new Object[]{"1007", "Loja Épsilon", "7 dias", "DEVOLVIDO_AO_VENDEDOR", 3210.00});
+        modeloPedidos.addRow(new Object[]{"1008", "Mercado Gama", "À Vista", "ABERTO", 2890.40});
         atualizarKpis();
     }
 
