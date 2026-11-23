@@ -16,10 +16,14 @@ public class TelaPagamentoController {
     public double totalPago() { return recebimentos.values().stream().mapToDouble(Double::doubleValue).sum(); }
     public double calcularTroco(double total) { return Math.max(0, totalPago() - total); }
     public boolean podeConfirmar(double total) { return total >= 0 && totalPago() >= total; }
-    public void validarCliente(ClientePagamento cliente) {
-        if (cliente == null || vazio(cliente.getNome()) || vazio(cliente.getCpf()) || vazio(cliente.getTelefone())
-            || vazio(cliente.getCep()) || vazio(cliente.getEndereco()) || vazio(cliente.getNumero()) || vazio(cliente.getUf()))
-            throw new IllegalArgumentException("Preencha os dados obrigatórios do consumidor.");
+    
+public void registrarRecebimento(Metodo metodo, double valor) {
+    if (metodo == null || !Double.isFinite(valor) || valor < 0) {
+        throw new IllegalArgumentException("Método e valor inválidos.");
     }
+
+    recebimentos.put(metodo, valor);
+}
+
     private boolean vazio(String valor) { return valor == null || valor.isBlank(); }
 }
