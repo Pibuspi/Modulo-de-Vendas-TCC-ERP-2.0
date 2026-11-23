@@ -4,6 +4,7 @@ package dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.math.BigDecimal;
 
 import model.Cliente;
 
@@ -30,17 +31,24 @@ public class ClienteDAO {
             stmt.setString(1, cliente.getCpfCnpj());
             stmt.setString(2, cliente.getRazaoSocial());
             stmt.setString(3, cliente.getNomeFantasia());
+
             stmt.setBigDecimal(
                     4,
-                    java.math.BigDecimal.valueOf(
+                    BigDecimal.valueOf(
                             cliente.getLimiteCredito()
                     )
             );
+
             stmt.setString(
                     5,
                     cliente.getCondicaoPagamento()
             );
-            stmt.setBoolean(6, cliente.isBloqueado());
+
+            stmt.setBoolean(
+                    6,
+                    cliente.isBloqueado()
+            );
+
             stmt.setString(
                     7,
                     cliente.getMotivoBloqueio()
