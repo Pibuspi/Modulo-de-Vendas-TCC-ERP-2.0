@@ -12,7 +12,14 @@ public class TelaBalcaoView extends JPanel {
     private final JTextField codigo = new JTextField(8);
     private final JTextField quantidade = new JTextField("1", 5);
     private final JLabel total = new JLabel("Total: R$ 0,00");
-    private final DefaultTableModel produtos = new DefaultTableModel(new Object[]{"Código", "Produto", "Quantidade", "Vendas", "Preço"}, 0);
+   private final DefaultTableModel produtos = new DefaultTableModel(
+    new Object[]{"Código", "Produto", "Quantidade", "Vendas", "Preço"}, 0
+) {
+    @Override
+    public boolean isCellEditable(int linha, int coluna) {
+        return false;
+    }
+};
     public TelaBalcaoView() {
         setLayout(new BorderLayout(8, 8)); setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         JPanel topo = new JPanel(new FlowLayout(FlowLayout.LEFT)); topo.add(new JLabel("Pesquisar:")); topo.add(busca);
