@@ -15,13 +15,13 @@ public class ClienteController {
             return false;
         }
 
-        if (cliente.getCpfCnpj() == null
-                || cliente.getCpfCnpj().isBlank()) {
+        String documento = cliente.getCpfCnpj();
+
+        if (documento == null) {
             return false;
         }
 
-        String documento = cliente.getCpfCnpj()
-                .replaceAll("\\D", "");
+        documento = documento.replaceAll("\\D", "");
 
         if (documento.length() != 11
                 && documento.length() != 14) {
@@ -56,4 +56,3 @@ public class ClienteController {
         return true;
     }
 }
-
